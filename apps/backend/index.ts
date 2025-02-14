@@ -1,9 +1,17 @@
 import express from "express";
 import "dotenv/config";
-const PORT = process.env.PORT;
-const app = express();
+
 import { GenerateImagesFromPacksSchema, GenerateImageSchema, TrainModelSchema } from "common/types";
 import { prisma } from "db";
+import { s3, write, S3Client } from "bun";
+import { FalAiModel } from "./models/FalAiModel";
+
+
+const falAiModel = new FalAiModel()
+
+
+const PORT = process.env.PORT;
+const app = express();
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
@@ -16,24 +24,28 @@ app.post("/ai/trainModel", async (req, res) => {
 
   const parsedBody = TrainModelSchema.safeParse(req.body);
 
+
   if (!parsedBody.success) {
     res.status(411).json({
       message: "Incorrect Inputs"
     })
     return;
   }
+  
+  const {request_id, response_url} = await falAiModel.trainModel(parsedBody.data.zipUrls, req.body.triggerWord)
 
   try {
     const model = await prisma.model.create({
       data: {
-        name: req.body.name,
-        type: req.body.type,
-        age: req.body.age,
-        ethnicity: req.body.ethnicity,
-        eyeColor: req.body.eyeColor,
-        bald: req.body.bald,
+        name: parsedBody.data.name,
+        type: parsedBody.data.type,
+        age: parsedBody.data.age,
+        ethnicity: parsedBody.data.ethnicity,
+        eyeColor: parsedBody.data.eyeColor,
+        bald: parsedBody.data.bald,
         userId: req.body.userId,
-        imageUrls: req.body.imageUrls
+        zipUrls: parsedBody.data.zipUrls,
+        falAiRequestId: request_id,
       }
     })
     res.status(200).json({
@@ -64,13 +76,28 @@ app.post("/ai/generate", async (req, res) => {
 
   }
 
+  const model = await prisma.model.findUnique({
+    where: {
+      id: req.body.modelId
+    }
+  })
+  if(!model || !model.tensorPath)  {
+    res.status(404).json({
+      message: "Model not found"
+    })
+    return;
+  }
+  
+  const {request_id, response_url} = await falAiModel.generateImage(model.tensorPath, req.body.prompt)
+  
   try {
     const data = await prisma.outputImage.create({
       data: {
-        prompt: req.body.prompt,
+        prompt: parsedBody.data.prompt,
         imageUrl: req.body.imageUrl,
-        modelId: req.body.modelId,
-        userId: req.body.userId
+        modelId: parsedBody.data.modelId,
+        userId: req.body.userId ?? " ",
+        falAiRequestId: request_id
       }
     })
     if (!data) {
@@ -108,7 +135,13 @@ app.post("/pack/generate", async (req, res) => {
     }
   })
 
-  const image = await prisma.outputImage.createManyAndReturn({
+  const image = await prisma.outputImage.create({
+    // data:{
+    //   prompt: prompts[0].prompt,
+    //   userId: req.body.userId,
+    //   modelId: req.body.modelId,
+    //   zipUrls: req.body.zipUrls
+    // }
     data: prompts.map((prompt) => ({
       prompt: prompt.prompt,
       userId: req.body.userId,
@@ -118,7 +151,7 @@ app.post("/pack/generate", async (req, res) => {
   });
 
   res.json({
-    images: image.map((image) => image.id)
+   message: "Images generated successfully",
   })
 })
 
@@ -131,7 +164,6 @@ app.get("/pack/bulk", async (req, res) => {
     data: data
   })
 })
-
 
 
 app.get("/image/bulk", async (req, res) => {
@@ -165,6 +197,50 @@ app.get("/image/bulk", async (req, res) => {
   }
 
 });
+
+
+app.post("/webhook/image", async (req,res)=>{
+  // for Generating an image
+  console.log("Route for generating an image")
+  console.log(req.body);
+  const requestId = req.body.requestId
+    const imageOutput = await prisma.outputImage.updateMany({
+    where: {
+      falAiRequestId: req.body.falAiRequestId
+    },
+    data: {
+      status: "Generated",
+      imageUrl: req.body.imageUrl
+    }
+  })
+  
+  //update the status of img in db 
+  
+  res.json({
+    message: "webhook route and status in db updated successfully"
+  })
+})
+
+
+app.post("/webhook/train", async (req,res)=>{
+  // for training a model
+  console.log("route for training an model")
+  console.log(req.body);
+  //update the status of img in db 
+  const  trainModel = await prisma.model.updateMany({
+    where: {
+      falAiRequestId: req.body.falAiRequestId
+    },
+    data: {
+      trainingStatus: "Completed",
+      tensorPath: req.body.tensorPath
+    }
+  })
+  res.json({
+    message: "webhook route and status in db updated successfully"
+  })
+})
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
