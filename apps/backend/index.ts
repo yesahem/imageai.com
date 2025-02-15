@@ -3,22 +3,43 @@ import "dotenv/config";
 
 import { GenerateImagesFromPacksSchema, GenerateImageSchema, TrainModelSchema } from "common/types";
 import { prisma } from "db";
-import { s3, write, S3Client } from "bun";
+import { S3Client } from "bun";
 import { FalAiModel } from "./models/FalAiModel";
-
 
 const falAiModel = new FalAiModel()
 
-
 const PORT = process.env.PORT;
 const app = express();
-
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
+
+const r2Credentials = {
+  accessKeyId: process.env.R2_ACCESS_KEY,
+  secretAccessKey: process.env.R2_SECRET_KEY,
+  bucket: process.env.BUCKET_NAME,
+  endpoint: process.env.R2_ENDPOINT, // Cloudflare R2 Endpoint
+};
 
 app.get("/", (req, res) => {
   res.send("Healthy Server ✨");
 });
+
+
+app.get("/preSignURLs", async (req, res) => {
+
+  const key = `pre_signedUrls/models/${Date.now()}_${Math.floor(Math.random() * 1000000000000000)}.zip`
+  const presignedUrls = S3Client.presign(`key`, {
+    ...r2Credentials,
+    expiresIn: 3600,
+  });
+  res.json({
+    urls: presignedUrls,
+    key: key
+  })
+
+  return;
+
+})
 
 app.post("/ai/trainModel", async (req, res) => {
 
@@ -31,8 +52,8 @@ app.post("/ai/trainModel", async (req, res) => {
     })
     return;
   }
-  
-  const {request_id, response_url} = await falAiModel.trainModel(parsedBody.data.zipUrls, req.body.triggerWord)
+
+  const { request_id, response_url } = await falAiModel.trainModel(parsedBody.data.zipUrls, req.body.triggerWord)
 
   try {
     const model = await prisma.model.create({
@@ -81,15 +102,15 @@ app.post("/ai/generate", async (req, res) => {
       id: req.body.modelId
     }
   })
-  if(!model || !model.tensorPath)  {
+  if (!model || !model.tensorPath) {
     res.status(404).json({
       message: "Model not found"
     })
     return;
   }
-  
-  const {request_id, response_url} = await falAiModel.generateImage(model.tensorPath, req.body.prompt)
-  
+
+  const { request_id, response_url } = await falAiModel.generateImage(model.tensorPath, req.body.prompt)
+
   try {
     const data = await prisma.outputImage.create({
       data: {
@@ -135,23 +156,25 @@ app.post("/pack/generate", async (req, res) => {
     }
   })
 
-  const image = await prisma.outputImage.create({
-    // data:{
-    //   prompt: prompts[0].prompt,
-    //   userId: req.body.userId,
-    //   modelId: req.body.modelId,
-    //   zipUrls: req.body.zipUrls
-    // }
-    data: prompts.map((prompt) => ({
+
+
+  let requestIds: { request_id: string }[] = await Promise.all(prompts.map(async (prompt, index) => falAiModel.generateImage(prompt.prompt, parsedBody.data.modelId)
+  ))
+
+
+  const image = await prisma.outputImage.createManyAndReturn({
+
+    data: prompts.map((prompt, index) => ({
       prompt: prompt.prompt,
       userId: req.body.userId,
       modelId: req.body.modelId,
-      imageUrl: req.body.imageUrl
+      imageUrl: req.body.imageUrl,
+      falAiRequestId: requestIds[index].request_id
     }))
   });
 
   res.json({
-   message: "Images generated successfully",
+    images: image.map((img) => img.id)
   })
 })
 
@@ -199,12 +222,12 @@ app.get("/image/bulk", async (req, res) => {
 });
 
 
-app.post("/webhook/image", async (req,res)=>{
+app.post("/webhook/image", async (req, res) => {
   // for Generating an image
   console.log("Route for generating an image")
   console.log(req.body);
   const requestId = req.body.requestId
-    const imageOutput = await prisma.outputImage.updateMany({
+  const imageOutput = await prisma.outputImage.updateMany({
     where: {
       falAiRequestId: req.body.falAiRequestId
     },
@@ -213,21 +236,21 @@ app.post("/webhook/image", async (req,res)=>{
       imageUrl: req.body.imageUrl
     }
   })
-  
+
   //update the status of img in db 
-  
+
   res.json({
     message: "webhook route and status in db updated successfully"
   })
 })
 
 
-app.post("/webhook/train", async (req,res)=>{
+app.post("/webhook/train", async (req, res) => {
   // for training a model
   console.log("route for training an model")
   console.log(req.body);
   //update the status of img in db 
-  const  trainModel = await prisma.model.updateMany({
+  const trainModel = await prisma.model.updateMany({
     where: {
       falAiRequestId: req.body.falAiRequestId
     },
