@@ -25,17 +25,21 @@ const secondaryVariant = {
   },
 };
 
-export const FileUpload = ({
-  onChange,
-}: {
-  onChange?: (files: File[]) => void;
-}) => {
+export const FileUpload = ({ onChange }: { onChange?: (files: File[]) => void }) => {
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (newFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    onChange && onChange(newFiles);
+  const handleFileChange = (selectedFiles: File[]) => {
+    const validFiles = selectedFiles.filter((file) =>
+      ["image/png", "image/jpeg", "image/jpg"].includes(file.type)
+    );
+
+    if (validFiles.length !== selectedFiles.length) {
+      alert("Only image files (PNG, JPEG, JPG) are allowed.");
+    }
+
+    setFiles((prevFiles) => [...prevFiles, ...validFiles]);
+    onChange && onChange(validFiles);
   };
 
   const handleClick = () => {
@@ -45,24 +49,22 @@ export const FileUpload = ({
   const { getRootProps, isDragActive } = useDropzone({
     multiple: true,
     noClick: true,
-    onDrop: handleFileChange,
-    onDropAccepted: (files) => {
-      console.log(files);
-    },
-    onDropRejected: (error) => {
-      alert("Please Upload image Files only");
-    },
     accept: {
-      "image/png": [".png"],
-      "image/jpeg": [".jpeg"],
-      "image/jpg": [".jpg"],
+      "image/jpeg": [],
+      "image/png": [],
+      "image/jpg": [],
+    },
+    onDropAccepted: (acceptedFiles) => {
+      handleFileChange(acceptedFiles);
+    },
+    onDropRejected: () => {
+      alert("Please upload only image files (PNG, JPEG, JPG).");
     },
   });
 
   return (
-    <div className="w-full  " {...getRootProps()}>
+    <div className="w-full border-2 border-red-400" {...getRootProps()} onClick={handleClick}>
       <motion.div
-        onClick={handleClick}
         whileHover="animate"
         className="p-10 group/file block rounded-lg cursor-pointer w-full relative overflow-hidden"
       >
@@ -70,6 +72,7 @@ export const FileUpload = ({
           ref={fileInputRef}
           id="file-upload-handle"
           type="file"
+          accept="image/png, image/jpeg, image/jpg"
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
         />
@@ -128,8 +131,7 @@ export const FileUpload = ({
                       animate={{ opacity: 1 }}
                       layout
                     >
-                      modified{" "}
-                      {new Date(file.lastModified).toLocaleDateString()}
+                      modified {new Date(file.lastModified).toLocaleDateString()}
                     </motion.p>
                   </div>
                 </motion.div>
@@ -177,25 +179,5 @@ export const FileUpload = ({
 };
 
 export function GridPattern() {
-  const columns = 41;
-  const rows = 11;
-  return (
-    <div className="flex bg-gray-100 dark:bg-neutral-900 flex-shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px  scale-105">
-      {Array.from({ length: rows }).map((_, row) =>
-        Array.from({ length: columns }).map((_, col) => {
-          const index = row * columns + col;
-          return (
-            <div
-              key={`${col}-${row}`}
-              className={`w-10 h-10 flex flex-shrink-0 rounded-[2px] ${
-                index % 2 === 0
-                  ? "bg-gray-50 dark:bg-neutral-950"
-                  : "bg-gray-50 dark:bg-neutral-950 shadow-[0px_0px_1px_3px_rgba(255,255,255,1)_inset] dark:shadow-[0px_0px_1px_3px_rgba(0,0,0,1)_inset]"
-              }`}
-            />
-          );
-        })
-      )}
-    </div>
-  );
+  return <div className="flex bg-gray-100 dark:bg-neutral-900 flex-wrap justify-center items-center gap-x-px gap-y-px scale-105"></div>;
 }
