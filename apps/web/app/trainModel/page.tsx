@@ -102,7 +102,7 @@ export default function ModelTrainingModal() {
                   </SelectTrigger>
                   <SelectContent position="popper">
                     <SelectItem value="Yes" className="cursor-pointer">
-                      Yes (Model doesn't have hairs)
+                      Yes (Model doesn&apos;t have hairs)
                     </SelectItem>
                     <SelectItem value="No" className="cursor-pointer">No (Model have Hairs)</SelectItem>
                   </SelectContent>

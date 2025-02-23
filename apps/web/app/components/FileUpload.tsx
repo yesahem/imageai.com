@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
@@ -26,9 +26,14 @@ const secondaryVariant = {
 };
 
 export const FileUpload = ({ onChange }: { onChange?: (files: File[]) => void }) => {
+  
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
+  useEffect(()=>{
+    console.log(files)
+  },[files])
+  
   const handleFileChange = (selectedFiles: File[]) => {
     const validFiles = selectedFiles.filter((file) =>
       ["image/png", "image/jpeg", "image/jpg"].includes(file.type)
@@ -63,7 +68,7 @@ export const FileUpload = ({ onChange }: { onChange?: (files: File[]) => void })
   });
 
   return (
-    <div className="w-full border-2 border-red-400" {...getRootProps()} onClick={handleClick}>
+    <div className="w-full " {...getRootProps()} onClick={handleClick}>
       <motion.div
         whileHover="animate"
         className="p-10 group/file block rounded-lg cursor-pointer w-full relative overflow-hidden"
