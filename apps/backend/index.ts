@@ -1,6 +1,6 @@
 import express from "express";
 import "dotenv/config";
-
+import cors from "cors"
 import { GenerateImagesFromPacksSchema, GenerateImageSchema, TrainModelSchema } from "common/types";
 import { prisma } from "db";
 import { S3Client } from "bun";
@@ -12,6 +12,8 @@ const PORT = process.env.PORT;
 const app = express();
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cors())
 
 const r2Credentials = {
   accessKeyId: process.env.R2_ACCESS_KEY,
