@@ -1,0 +1,13 @@
+# Complete the CI/CD 
+# name: Deploy the Backend
+# on: 
+#   push:
+#       branches:
+#         - main
+# jobs:
+#   build:
+#       runs-on: ubuntu-latest
+#       steps:
+#         - name: Checkout the Code
+#           uses: actions/checkout@v2
+        
