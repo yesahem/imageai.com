@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 
 import { FileUpload } from "@/components/FileUpload";
+import axios from "axios";
+
 
 export default function ModelTrainingModal() {
   return (
@@ -118,7 +120,7 @@ export default function ModelTrainingModal() {
           <Button variant="outline" className="cursor-pointer">Cancel</Button>
           <Button variant="default" onClick={()=>{
             alert("model")
-          }} className="cursor-pointer">Start Training </Button>
+          }} className="cursor-pointer" >Start Training </Button>
         </CardFooter>
       </Card>
     </div>
