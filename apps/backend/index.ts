@@ -20,6 +20,7 @@ const r2Credentials = {
   secretAccessKey: process.env.R2_SECRET_KEY,
   bucket: process.env.BUCKET_NAME,
   endpoint: process.env.R2_ENDPOINT, // Cloudflare R2 Endpoint
+  
 };
 
 app.get("/", (req, res) => {
@@ -29,17 +30,22 @@ app.get("/", (req, res) => {
 
 app.get("/preSignURLs", async (req, res) => {
 
-  const key = `pre_signedUrls/models/${Date.now()}_${Math.floor(Math.random() * 1000000000000000)}.zip`
-  const presignedUrls = S3Client.presign(`key`, {
-    ...r2Credentials,
+  const key = `models/${Date.now()}_${Math.floor(Math.random() * 1000000000000000)}.zip`
+  let presignedUrls = S3Client.presign(key, {
+    method: "PUT",
+    accessKeyId: process.env.R2_ACCESS_KEY,
+    secretAccessKey: process.env.R2_SECRET_KEY,
+    bucket: process.env.BUCKET_NAME,
+    endpoint: process.env.R2_ENDPOINT, // Cloudflare R2 Endpoint
     expiresIn: 3600,
+    type: "application/gzip"
   });
+  console.log(presignedUrls)
+  // presignedUrls = decodeURIComponent(presignedUrls)
   res.json({
     urls: presignedUrls,
     key: key
   })
-
-  return;
 
 })
 
