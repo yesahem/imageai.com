@@ -37,6 +37,7 @@ export const FileUpload = ({
 
   useEffect(() => {
     console.log(files);
+    console.log("Backend URl", process.env.BACKEND_URL);
     getData(files);
   }, [files]);
 
@@ -51,10 +52,10 @@ export const FileUpload = ({
     const key = axiosResponse.data.key;
     const preSignedUrls = axiosResponse.data.urls;
     // console.log("Key", key, "\n\n\n urls", preSignedUrls);
-     console.log("type",typeof preSignedUrls)
-     
+    console.log("type", typeof preSignedUrls);
+
     //zipping logic
-    
+
     if (files.length === 0) {
       alert("No files to zip.");
       return;
@@ -72,15 +73,13 @@ export const FileUpload = ({
       console.log("file", blobContent);
       console.log("key", key);
 
-
       console.log("formData content", formData);
-      try{
-        
-      const postAxiosResponse = await axios.put(preSignedUrls, formData);
-      console.log("Post Data Url", postAxiosResponse.data);
-    }catch(err1){
-      console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1)
-    }
+      try {
+        const postAxiosResponse = await axios.put(preSignedUrls, formData);
+        console.log("Post Data Url", postAxiosResponse.data);
+      } catch (err1) {
+        console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1);
+      }
     } catch (error) {
       console.error("Error generating ZIP:", error);
     }
@@ -88,7 +87,7 @@ export const FileUpload = ({
 
   const handleFileChange = (selectedFiles: File[]) => {
     const validFiles = selectedFiles.filter((file) =>
-      ["image/png", "image/jpeg", "image/jpg"].includes(file.type),
+      ["image/png", "image/jpeg", "image/jpg"].includes(file.type)
     );
 
     if (validFiles.length !== selectedFiles.length) {
@@ -102,7 +101,6 @@ export const FileUpload = ({
     }
 
     // add the images zipping logic here
-     
   };
 
   const handleClick = () => {
@@ -163,7 +161,7 @@ export const FileUpload = ({
                   layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
                   className={cn(
                     "relative overflow-hidden z-40 bg-white dark:bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
-                    "shadow-sm",
+                    "shadow-sm"
                   )}
                 >
                   <div className="flex justify-between w-full items-center gap-4">
@@ -217,7 +215,7 @@ export const FileUpload = ({
                 }}
                 className={cn(
                   "relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
-                  "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]",
+                  "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                 )}
               >
                 {isDragActive ? (
