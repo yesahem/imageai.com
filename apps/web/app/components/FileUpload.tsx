@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
-import { BACKEND_URL } from "@/config";
+import { BACKEND_URL, CLOUDFLARE_PUBLIC_URL } from "@/config";
 import JSZip from "JSZip";
 const mainVariant = {
   initial: {
@@ -29,10 +29,13 @@ const secondaryVariant = {
 
 export const FileUpload = ({
   onChange,
+  onUploadComplete
 }: {
-  onChange?: (files: File[]) => void;
+  onChange?: (files: File[]) => void,
+  onUploadComplete: (zipUrl: string)=> void
 }) => {
   const [files, setFiles] = useState<File[]>([]);
+  const [zipUrl, setZipUrl] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export const FileUpload = ({
     const zip = new JSZip();
 
     const axiosResponse = await axios.get(`${BACKEND_URL}/preSignURLs`);
-    console.log(axiosResponse.data);
+    console.log("mkc",axiosResponse.data);
 
     const key = axiosResponse.data.key;
     const preSignedUrls = axiosResponse.data.urls;
@@ -61,8 +64,8 @@ export const FileUpload = ({
       return;
     }
 
-    files.forEach((file) => {
-      zip.file(file.name, file);
+    files.forEach((fileContent) => {
+      zip.file(fileContent.name, fileContent);
     });
 
     try {
@@ -74,15 +77,25 @@ export const FileUpload = ({
       console.log("key", key);
 
       console.log("formData content", formData);
+      
+      
       try {
         const postAxiosResponse = await axios.put(preSignedUrls, formData);
-        console.log("Post Data Url", postAxiosResponse.data);
+        console.log("dataUrl", postAxiosResponse)
+        if(postAxiosResponse.status === 200){
+          alert("file uploaded sucessfully")
+          onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`)
+        }else{
+          alert("network error ")
+        }
       } catch (err1) {
         console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1);
       }
     } catch (error) {
       console.error("Error generating ZIP:", error);
     }
+    
+    
   }
 
   const handleFileChange = (selectedFiles: File[]) => {
@@ -149,9 +162,6 @@ export const FileUpload = ({
             Drag or drop your files here or click to upload
           </p>
 
-          {/* <button onClick={zipImages} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md">
-            Download as ZIP
-          </button> */}
 
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {files.length > 0 &&
