@@ -24,12 +24,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BACKEND_URL } from "@/config";
+import { useAuth } from "@clerk/nextjs";
 
-export default function ModelTrainingModal() {
+export default  function ModelTrainingModal() {
   const router = useRouter();
-  const [zipUrl,setZipUrl] = useState<string>("")
-  const [disable,setDisabled] = useState(true)
-  const { handleSubmit, register, control,setValue } = useForm<ModelTraningInput>();
+  const [zipUrl, setZipUrl] = useState<string>("");
+  const [disable, setDisabled] = useState(true);
+  const [data, setData] = useState<ModelTraningInput>();
+  const { getToken } = useAuth();
+
+  
+
+  const { handleSubmit, register, control, setValue } =
+    useForm<ModelTraningInput>();
 
   // function trainModel<ModelTraningInput>(data: ModelTraningInput) {
   //   console.log("hii there");
@@ -39,21 +46,26 @@ export default function ModelTrainingModal() {
   const onSubmit: SubmitHandler<ModelTraningInput> = (data) => {
     // make the axios post request to the backend and get the model train
     console.log("form data", data);
-
-    
+    setData(data);
   };
-  
-  
-  const trainModel =async ()=>{
+
+  const trainModel = async () => {
+    const Token = await getToken();
     //uncomment this to train model (remember training a model will cost you 2$ )
-    // const modelTrain = await axios.post(`${BACKEND_URL}/ai/trainModel`)
-    
+    const modelTrain = await axios.post(`${BACKEND_URL}/ai/trainModel`, data, {
+      headers: {
+        token: `Bearer ${Token}`,
+      },
+    });
+
     // console.log(modelTrain.data)
-    
-    alert("model is being trained, till then chill-out buddy\n now its our job ")
-    
-    router.push("/")
-  }
+
+    alert(
+      "model is being trained, till then chill-out buddy\n now its our job "
+    );
+
+    router.push("/");
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen ">
@@ -132,8 +144,7 @@ export default function ModelTrainingModal() {
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
-                      <SelectTrigger id="ethnicity"
-                      >
+                      <SelectTrigger id="ethnicity">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent position="popper">
@@ -193,7 +204,7 @@ export default function ModelTrainingModal() {
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
-                      <SelectTrigger id="eyeColor" >
+                      <SelectTrigger id="eyeColor">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent position="popper">
@@ -222,16 +233,18 @@ export default function ModelTrainingModal() {
                   control={control}
                   defaultValue={false}
                   render={({ field }) => (
-                    <Select onValueChange={(val) => field.onChange(val === "Yes")} >
-                      <SelectTrigger id="bald" >
+                    <Select
+                      onValueChange={(val) => field.onChange(val === "true")}
+                    >
+                      <SelectTrigger id="bald">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent position="popper">
                         <SelectItem value="Yes" className="cursor-pointer">
-                          Yes 
+                          Yes
                         </SelectItem>
                         <SelectItem value="No" className="cursor-pointer">
-                         No
+                          No
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -240,15 +253,21 @@ export default function ModelTrainingModal() {
               </div>
             </div>
 
-            <FileUpload onUploadComplete={(zipUrl)=>{
-              setZipUrl(zipUrl)
-              setValue("zipUrls",zipUrl)
-            }} />
+            <FileUpload
+              onUploadComplete={(zipUrl) => {
+                setZipUrl(zipUrl);
+                setValue("zipUrls", zipUrl);
+              }}
+            />
 
             <CardFooter className="flex justify-between mt-2">
-              <Button variant="outline" className="cursor-pointer" onClick={()=>{
-                router.push("/")
-              }}>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
                 Cancel
               </Button>
               <Button

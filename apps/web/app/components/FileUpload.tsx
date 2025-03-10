@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { BACKEND_URL, CLOUDFLARE_PUBLIC_URL } from "@/config";
 import JSZip from "JSZip";
+
 const mainVariant = {
   initial: {
     x: 0,
@@ -37,6 +38,7 @@ export const FileUpload = ({
   const [files, setFiles] = useState<File[]>([]);
   const [zipUrl, setZipUrl] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
     console.log(files);
