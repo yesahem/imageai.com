@@ -33,14 +33,19 @@ export class FalAiModel extends BaseModel {
 
     public async trainModel(inputImagesAsZipUrl: string, triggerWord: string) {
 
-        const { request_id, response_url } = await fal.queue.submit("fal-ai/flux-lora-fast-training", {
-            input: {
-              images_data_url: inputImagesAsZipUrl
-            },
-            webhookUrl: `${process.env.WEBHOOK_URL}/train`
-          });
+        // uncomment this to actually send request to fal-ai 
+        
+        // const { request_id, response_url } = await fal.queue.submit("fal-ai/flux-lora-fast-training", {
+        //     input: {
+        //       images_data_url: inputImagesAsZipUrl
+        //     },
+        //     webhookUrl: `${process.env.WEBHOOK_URL}/train`
+        //   });
           
-          return {request_id, response_url};
+        //   return {request_id, response_url};
+        
+        console.log("zipUrlInBE",inputImagesAsZipUrl)
+        return {request_id:"default reqid", response_url:"default resid"};
     }
 
 }

@@ -5,6 +5,7 @@ import { GenerateImagesFromPacksSchema, GenerateImageSchema, TrainModelSchema } 
 import { prisma } from "db";
 import { S3Client } from "bun";
 import { FalAiModel } from "./models/FalAiModel";
+import { authMiddleWare } from "./middleware";
 
 const falAiModel = new FalAiModel()
 
@@ -20,7 +21,7 @@ const r2Credentials = {
   secretAccessKey: process.env.R2_SECRET_KEY,
   bucket: process.env.BUCKET_NAME,
   endpoint: process.env.R2_ENDPOINT, // Cloudflare R2 Endpoint
-  
+
 };
 
 app.get("/", (req, res) => {
@@ -49,7 +50,7 @@ app.get("/preSignURLs", async (req, res) => {
 
 })
 
-app.post("/ai/trainModel", async (req, res) => {
+app.post("/ai/trainModel", authMiddleWare, async (req, res) => {
 
   const parsedBody = TrainModelSchema.safeParse(req.body);
 
@@ -93,7 +94,7 @@ app.post("/ai/trainModel", async (req, res) => {
 
 });
 
-app.post("/ai/generate", async (req, res) => {
+app.post("/ai/generate", authMiddleWare, async (req, res) => {
   const parsedBody = GenerateImageSchema.safeParse(req.body)
 
   if (!parsedBody.success) {
@@ -147,7 +148,7 @@ app.post("/ai/generate", async (req, res) => {
 
 });
 
-app.post("/pack/generate", async (req, res) => {
+app.post("/pack/generate", authMiddleWare, async (req, res) => {
   const parsedBody = GenerateImagesFromPacksSchema.safeParse(req.body)
 
   if (!parsedBody.success) {
@@ -230,7 +231,7 @@ app.get("/image/bulk", async (req, res) => {
 });
 
 
-app.post("/webhook/image", async (req, res) => {
+app.post("/webhook/image", authMiddleWare, async (req, res) => {
   // for Generating an image
   console.log("Route for generating an image")
   console.log(req.body);
@@ -253,7 +254,7 @@ app.post("/webhook/image", async (req, res) => {
 })
 
 
-app.post("/webhook/train", async (req, res) => {
+app.post("/webhook/train", authMiddleWare, async (req, res) => {
   // for training a model
   console.log("route for training an model")
   console.log(req.body);
