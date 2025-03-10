@@ -37,6 +37,7 @@ export const FileUpload = ({
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [zipUrl, setZipUrl] = useState<string>("")
+  const [fileUploaded,setFileUploaded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
   
 
@@ -86,6 +87,7 @@ export const FileUpload = ({
         console.log("dataUrl", postAxiosResponse)
         if(postAxiosResponse.status === 200){
           alert("file uploaded sucessfully")
+          setFileUploaded(true)
           onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`)
         }else{
           alert("network error ")

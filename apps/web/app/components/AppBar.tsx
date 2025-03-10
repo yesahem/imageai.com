@@ -13,12 +13,12 @@ import {
 
 export function AppBar() {
   return (
-    <ClerkProvider>
+    // <ClerkProvider>
       <div className=" relative w-full flex items-center justify-center">
         
         <Navbar className=" top-2" />
       </div>
-    </ClerkProvider>
+    // </ClerkProvider>
   );
 }
 

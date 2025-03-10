@@ -54,7 +54,7 @@ export default  function ModelTrainingModal() {
     //uncomment this to train model (remember training a model will cost you 2$ )
     const modelTrain = await axios.post(`${BACKEND_URL}/ai/trainModel`, data, {
       headers: {
-        token: `Bearer ${Token}`,
+        Authorization: `Bearer ${Token}`,
       },
     });
 
@@ -274,7 +274,7 @@ export default  function ModelTrainingModal() {
                 variant="default"
                 type="submit"
                 className="cursor-pointer"
-                // disabled     ==> if any of the property  like name,age,ethnicity and all is empty then simply disable this button (functionality to be added)
+                // disabled     ==> if any of the property  like name,age,ethnicity and all is empty then simply disable this button manage the state of isFileUploaded state globbally from FileUpload.tsx componenet(functionality to be added)
                 onClick={trainModel}
               >
                 Start Training{" "}
