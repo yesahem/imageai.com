@@ -34,10 +34,6 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            
-          </header>
-          
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -45,7 +41,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AppBar />
-            {children}
+            <main >{children}</main>
           </ThemeProvider>
         </body>
       </html>
