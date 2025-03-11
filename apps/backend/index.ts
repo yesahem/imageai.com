@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors())
 
+
 const r2Credentials = {
   accessKeyId: process.env.R2_ACCESS_KEY,
   secretAccessKey: process.env.R2_SECRET_KEY,
@@ -50,14 +51,17 @@ app.get("/preSignURLs", async (req, res) => {
 
 })
 
+
 app.post("/ai/trainModel", authMiddleWare, async (req, res) => {
 
   const parsedBody = TrainModelSchema.safeParse(req.body);
 
 
   if (!parsedBody.success) {
+    console.log( parsedBody)
     res.status(411).json({
-      message: "Incorrect Inputs"
+      message: "Incorrect Inputs",
+      "ParsedBody": parsedBody
     })
     return;
   }
@@ -73,7 +77,7 @@ app.post("/ai/trainModel", authMiddleWare, async (req, res) => {
         ethnicity: parsedBody.data.ethnicity,
         eyeColor: parsedBody.data.eyeColor,
         bald: parsedBody.data.bald,
-        userId: req.body.userId,
+        userId: req.userId!,
         zipUrls: parsedBody.data.zipUrls,
         falAiRequestId: request_id,
       }
@@ -93,6 +97,7 @@ app.post("/ai/trainModel", authMiddleWare, async (req, res) => {
 
 
 });
+
 
 app.post("/ai/generate", authMiddleWare, async (req, res) => {
   const parsedBody = GenerateImageSchema.safeParse(req.body)
@@ -126,7 +131,7 @@ app.post("/ai/generate", authMiddleWare, async (req, res) => {
         prompt: parsedBody.data.prompt,
         imageUrl: req.body.imageUrl,
         modelId: parsedBody.data.modelId,
-        userId: req.body.userId ?? " ",
+        userId: req.userId ?? " ",
         falAiRequestId: request_id
       }
     })
@@ -147,6 +152,7 @@ app.post("/ai/generate", authMiddleWare, async (req, res) => {
   }
 
 });
+
 
 app.post("/pack/generate", authMiddleWare, async (req, res) => {
   const parsedBody = GenerateImagesFromPacksSchema.safeParse(req.body)
@@ -175,7 +181,7 @@ app.post("/pack/generate", authMiddleWare, async (req, res) => {
 
     data: prompts.map((prompt, index) => ({
       prompt: prompt.prompt,
-      userId: req.body.userId,
+      userId: req.userId!,
       modelId: req.body.modelId,
       imageUrl: req.body.imageUrl,
       falAiRequestId: requestIds[index].request_id
@@ -186,6 +192,7 @@ app.post("/pack/generate", authMiddleWare, async (req, res) => {
     images: image.map((img) => img.id)
   })
 })
+
 
 app.get("/pack/bulk", async (req, res) => {
 
@@ -212,7 +219,7 @@ app.get("/image/bulk", async (req, res) => {
         id: {
           in: imagesId
         },
-        userId: "12142"
+        userId: req.userId!
       },
       skip: parseInt(offset),
       take: parseInt(limit)

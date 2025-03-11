@@ -1,3 +1,5 @@
+
+
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
@@ -11,18 +13,21 @@ export function authMiddleWare(req: Request, res: Response, next: NextFunction) 
 
         if (!token || token === "null" || token === "undefined") {
             console.log("token is not present")
-             res.json({
+            res.json({
                 message: "token not present"
             })
             return
 
-        } 
+        }
 
-            const decodedToken = jwt.decode(token)?.sub
-
-            console.log("decodedToken", decodedToken)
+        const decodedToken = jwt.decode(token)?.sub
+        if (decodedToken) {
+            req.userId = decodedToken as string;
             next();
-        
+
+        }
+
+        console.log("decodedToken", decodedToken)
 
         // const decodedToken = jwt.decode(token)
 
