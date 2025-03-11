@@ -26,14 +26,11 @@ import axios from "axios";
 import { BACKEND_URL } from "@/config";
 import { useAuth } from "@clerk/nextjs";
 
-export default  function ModelTrainingModal() {
+export default function ModelTrainingModal() {
   const router = useRouter();
   const [zipUrl, setZipUrl] = useState<string>("");
   const [disable, setDisabled] = useState(true);
-  const [data, setData] = useState<ModelTraningInput>();
   const { getToken } = useAuth();
-
-  
 
   const { handleSubmit, register, control, setValue } =
     useForm<ModelTraningInput>();
@@ -43,28 +40,30 @@ export default  function ModelTrainingModal() {
   //   console.log("model data", data);
   // }
 
-  const onSubmit: SubmitHandler<ModelTraningInput> = (data) => {
+  const onSubmit: SubmitHandler<ModelTraningInput> = async (formData) => {
     // make the axios post request to the backend and get the model train
-    console.log("form data", data);
-    setData(data);
-  };
-
-  const trainModel = async () => {
+    console.log("form data", formData);
+    // setData(data);
+    
     const Token = await getToken();
-    //uncomment this to train model (remember training a model will cost you 2$ )
-    const modelTrain = await axios.post(`${BACKEND_URL}/ai/trainModel`, data, {
+    //uncomment this to train model (remember training a model will cost you 2$, fuck this cause in backend its already commented )
+    const modelTrain = await axios.post(`${BACKEND_URL}/ai/trainModel`, formData, {
       headers: {
         Authorization: `Bearer ${Token}`,
       },
     });
 
-    // console.log(modelTrain.data)
+    console.log(modelTrain.data)
 
     alert(
       "model is being trained, till then chill-out buddy\n now its our job "
     );
 
     router.push("/");
+  }; 
+
+  const trainModel = async () => {
+    
   };
 
   return (
@@ -96,10 +95,20 @@ export default  function ModelTrainingModal() {
 
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="Age">Age</Label>
-                <Input
-                  id="name"
-                  placeholder="Age of the model"
-                  {...register("age")}
+                <Controller
+                  name="age"
+                  control={control}
+                  defaultValue={0}
+                  render={({ field }) => (
+                    
+                    <Input
+                      id="age"
+                      placeholder="Age of the model"
+                      type="number"
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value}
+                    />
+                  )}
                 />
               </div>
 
@@ -234,7 +243,7 @@ export default  function ModelTrainingModal() {
                   defaultValue={false}
                   render={({ field }) => (
                     <Select
-                      onValueChange={(val) => field.onChange(val === "true")}
+                      onValueChange={(val) => field.onChange(val === "Yes")}
                     >
                       <SelectTrigger id="bald">
                         <SelectValue placeholder="Select" />
@@ -275,7 +284,7 @@ export default  function ModelTrainingModal() {
                 type="submit"
                 className="cursor-pointer"
                 // disabled     ==> if any of the property  like name,age,ethnicity and all is empty then simply disable this button manage the state of isFileUploaded state globbally from FileUpload.tsx componenet(functionality to be added)
-                onClick={trainModel}
+                // onClick={trainModel}
               >
                 Start Training{" "}
               </Button>
