@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* clerk user btnn custom css */
+.cl-avatarBox {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(240 10% 3.9%);
