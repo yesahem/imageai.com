@@ -16,6 +16,8 @@ datasource db {
 model User {
   id             String   @id @default(uuid())
   username       String
+  email          String @unique
+  clerkId        String @unique
   profilePicture String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -36,9 +38,8 @@ model Model {
   outputImages   OutputImage[]
   userId         String
   falAiRequestId String?
-  createdAt      DateTime                @default(now())  
+  createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
-
 }
 
 model OutputImage {
@@ -52,7 +53,6 @@ model OutputImage {
   falAiRequestId String
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
-
 }
 
 model Packs {
