@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -8,6 +9,13 @@
 .cl-avatarBox {
   width: 2.75rem;
   height: 2.75rem;
+}
+
+.quicksand{
+  font-family: var(--font-quicksand)
+}
+.quicksand-bold{
+  font-family: var(--font-quicksand-bold)
 }
 
 :root {
