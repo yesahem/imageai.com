@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
@@ -31,13 +31,15 @@ const secondaryVariant = {
 export const FileUpload = ({
   onChange,
   onUploadComplete,
+  setFileUploaded, 
 }: {
   onChange?: (files: File[]) => void;
   onUploadComplete: (zipUrl: string) => void;
+  setFileUploaded: Dispatch<SetStateAction<boolean>>
+  
 }) => {
   const [files, setFiles] = useState<File[]>([]);
-  const [zipUrl, setZipUrl] = useState<string>("");
-  const [fileUploaded, setFileUploaded] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -81,17 +83,19 @@ export const FileUpload = ({
       console.log("formData content", formData);
 
       try {
+        setFileUploaded(false)
         const postAxiosResponse = await axios.put(preSignedUrls, formData);
         console.log("dataUrl", postAxiosResponse);
         if (postAxiosResponse.status === 200) {
           alert("file uploaded sucessfully");
-          setFileUploaded(true);
           onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`);
         } else {
           alert("network error ");
         }
       } catch (err1) {
         console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1);
+      }finally{
+        setFileUploaded(true);
       }
     } catch (error) {
       console.error("Error generating ZIP:", error);

@@ -25,12 +25,17 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BACKEND_URL } from "@/config";
 import { useAuth } from "@clerk/nextjs";
+import { useGenerateImage } from "hooks/useGenerateImage";
+import FormGenerator from "@/components/Form";
+
+
 
 export default function ModelTrainingModal() {
   const router = useRouter();
+  const [fileUploaded, setFileUploaded] = useState(true);
   const [zipUrl, setZipUrl] = useState<string>("");
-  const [disable, setDisabled] = useState(true);
   const { getToken } = useAuth();
+
 
   const { handleSubmit, register, control, setValue } =
     useForm<ModelTraningInput>();
@@ -43,6 +48,11 @@ export default function ModelTrainingModal() {
   const onSubmit: SubmitHandler<ModelTraningInput> = async (formData) => {
     // make the axios post request to the backend and get the model train
     console.log("form data", formData);
+    if(zipUrl === "" || !zipUrl){
+      alert("zip url is empty")
+      return;
+    }
+    formData.zipUrls=zipUrl
     // setData(data);
     
     const Token = await getToken();
@@ -53,7 +63,7 @@ export default function ModelTrainingModal() {
       },
     });
 
-    console.log(modelTrain.data)
+    console.log("traning data",modelTrain.data)
 
     alert(
       "model is being trained, till then chill-out buddy\n now its our job "
@@ -70,8 +80,8 @@ export default function ModelTrainingModal() {
     <div className="flex flex-col items-center justify-center h-screen ">
       <Card className="w-[450px] ">
         <CardHeader>
-          <CardTitle className="items-center flex justify-center bg-gradient-to-l from-red-400 to-pink-500 bg-clip-text text-transparent">
-            <strong>Train the model</strong>
+          <CardTitle className="items-center flex justify-center text-white text-2xl">
+            Train the model
           </CardTitle>
           <CardDescription>
             Train your own image generation model in just
@@ -266,7 +276,10 @@ export default function ModelTrainingModal() {
               onUploadComplete={(zipUrl) => {
                 setZipUrl(zipUrl);
                 setValue("zipUrls", zipUrl);
+                
               }}
+            setFileUploaded={setFileUploaded} 
+              
             />
 
             <CardFooter className="flex justify-between mt-2">
@@ -285,6 +298,7 @@ export default function ModelTrainingModal() {
                 className="cursor-pointer"
                 // disabled     ==> if any of the property  like name,age,ethnicity and all is empty then simply disable this button manage the state of isFileUploaded state globbally from FileUpload.tsx componenet(functionality to be added)
                 // onClick={trainModel}
+                disabled={!fileUploaded}
               >
                 Start Training{" "}
               </Button>
@@ -295,3 +309,23 @@ export default function ModelTrainingModal() {
     </div>
   );
 }
+
+
+
+//-------- Custom Hook Implementation ------//
+
+
+// export default function ModelTrainingModal(){
+// const {errors,formSubmit,register} = useGenerateImage()
+
+// return(
+//   <form onSubmit={formSubmit}>
+//     {/* <FormGenerator errors={errors} inputType="input" type="text" name="name" placeholder="Input your modal name" register={register}/> */}
+    
+//     <button type="submit" onClick={()=>{
+//       console.log("clicked")
+//     }}> Submit</button>
+//   </form>
+// )
+
+// }

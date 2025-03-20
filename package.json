@@ -21,6 +21,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "@hookform/error-message": "^2.0.1",
     "axios": "^1.8.1"
   }
 }
