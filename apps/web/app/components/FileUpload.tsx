@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { BACKEND_URL, CLOUDFLARE_PUBLIC_URL } from "@/config";
 import JSZip from "JSZip";
+import { toast } from "sonner";
 
 const mainVariant = {
   initial: {
@@ -31,15 +32,14 @@ const secondaryVariant = {
 export const FileUpload = ({
   onChange,
   onUploadComplete,
-  setFileUploaded, 
+  setFileUploaded,
 }: {
   onChange?: (files: File[]) => void;
   onUploadComplete: (zipUrl: string) => void;
-  setFileUploaded: Dispatch<SetStateAction<boolean>>
-  
+  setFileUploaded: Dispatch<SetStateAction<boolean>>;
 }) => {
   const [files, setFiles] = useState<File[]>([]);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -68,10 +68,13 @@ export const FileUpload = ({
       return;
     }
 
+    toast("zipping file ");
     files.forEach((fileContent) => {
       zip.file(fileContent.name, fileContent);
     });
-
+    
+    toast("file zipped");
+    
     try {
       const blobContent = await zip.generateAsync({ type: "blob" });
       const formData = new FormData();
@@ -83,18 +86,22 @@ export const FileUpload = ({
       console.log("formData content", formData);
 
       try {
-        setFileUploaded(false)
+        setFileUploaded(false);
+        toast("uploading file");
         const postAxiosResponse = await axios.put(preSignedUrls, formData);
         console.log("dataUrl", postAxiosResponse);
         if (postAxiosResponse.status === 200) {
           alert("file uploaded sucessfully");
           onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`);
+          // setProgress("file uploaded sucessfully")
+          toast("File uploaded Sucessfully");
         } else {
           alert("network error ");
         }
       } catch (err1) {
+        toast("file can&aptos;t be uploaded sucessfully");
         console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1);
-      }finally{
+      } finally {
         setFileUploaded(true);
       }
     } catch (error) {

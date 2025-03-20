@@ -6,6 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 
 import {Quicksand} from "next/font/google" 
 import { NavBar } from "./components/NavBar";
+import { Toaster } from "sonner";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -49,7 +50,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <NavBar />
-            <main className={`${quicksandLight.variable}`}>{children}</main>
+            <main className={`${quicksandLight.variable}`}>{children} <Toaster /></main>
           </ThemeProvider>
         </body>
       </html>
