@@ -1,11 +1,23 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import { Accordion } from "./Accordion";
 import { Button } from "./ui/button";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export function Hero(){
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  
   function NavigatePage() {
-    alert("naviagate  to pages based on user login");
+    if (isSignedIn) {
+      router.push("/dashboard");
+    } else {
+      router.push("/auth/sign-in");
+    }
   }
+  
   return (
     <div className=" flex mt-40 rounded-lg  ">
       <div className="  w-[100%]  m-1 p-2 md:w-[50%] md: text-center ">

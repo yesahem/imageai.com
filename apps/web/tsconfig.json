@@ -3,7 +3,13 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./app/*"],
+      "@/lib/api-client": ["./lib/api-client"],
+      "@/lib/api": ["./lib/api"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/types": ["./types"],
+      "@/types/*": ["./types/*"],
+      "@/config": ["./app/config"]
     },
     "plugins": [
       {

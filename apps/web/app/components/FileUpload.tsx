@@ -51,61 +51,69 @@ export const FileUpload = ({
   // console.log("URl",BACKEND_URL)
 
   async function getData(files: File[]) {
-    const zip = new JSZip();
-
-    const axiosResponse = await axios.get(`${BACKEND_URL}/preSignURLs`);
-    console.log("mkc", axiosResponse.data);
-
-    const key = axiosResponse.data.key;
-    const preSignedUrls = axiosResponse.data.urls;
-    // console.log("Key", key, "\n\n\n urls", preSignedUrls);
-    console.log("type", typeof preSignedUrls);
-
-    //zipping logic
-
     if (files.length === 0) {
-      alert("No files to zip.");
       return;
     }
 
-    toast("zipping file ");
-    files.forEach((fileContent) => {
-      zip.file(fileContent.name, fileContent);
-    });
-    
-    toast("file zipped");
-    
+    const zip = new JSZip();
+
     try {
-      const blobContent = await zip.generateAsync({ type: "blob" });
-      const formData = new FormData();
-      formData.append("file", blobContent);
-      formData.append("key", key);
-      console.log("file", blobContent);
-      console.log("key", key);
+      // Get presigned URL from backend
+      const axiosResponse = await axios.get(`${BACKEND_URL}/preSignURLs`);
+      console.log("Presigned URL response:", axiosResponse.data);
 
-      console.log("formData content", formData);
-
-      try {
-        setFileUploaded(false);
-        toast("uploading file");
-        const postAxiosResponse = await axios.put(preSignedUrls, formData);
-        console.log("dataUrl", postAxiosResponse);
-        if (postAxiosResponse.status === 200) {
-          alert("file uploaded sucessfully");
-          onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`);
-          // setProgress("file uploaded sucessfully")
-          toast("File uploaded Sucessfully");
-        } else {
-          alert("network error ");
-        }
-      } catch (err1) {
-        toast("file can&aptos;t be uploaded sucessfully");
-        console.log("aur karlo nature ki banayi cheezo ke chhdchaad ", err1);
-      } finally {
-        setFileUploaded(true);
+      const preSignURLs = axiosResponse.data.preSignURLs;
+      
+      if (!preSignURLs || preSignURLs.length === 0) {
+        toast.error("Failed to get upload URL");
+        return;
       }
-    } catch (error) {
-      console.error("Error generating ZIP:", error);
+
+      // Use the first presigned URL
+      const { key, url: preSignedUrl } = preSignURLs[0];
+
+      // Zipping logic
+      toast("Zipping files...");
+      files.forEach((fileContent) => {
+        zip.file(fileContent.name, fileContent);
+      });
+
+      toast("Files zipped successfully");
+
+      const blobContent = await zip.generateAsync({ type: "blob" });
+      
+      console.log("Uploading to:", preSignedUrl);
+      console.log("With key:", key);
+      console.log("Blob size:", blobContent.size, "bytes");
+
+      setFileUploaded(false);
+      toast("Uploading file...");
+
+      // Upload directly to presigned URL - NO Content-Type header
+      // Let R2 determine it or use no content-type at all
+      const postAxiosResponse = await fetch(preSignedUrl, {
+        method: "PUT",
+        body: blobContent,
+        // Don't set any headers - let the presigned URL handle it
+      });
+
+      console.log("Upload response status:", postAxiosResponse.status);
+      console.log("Upload response headers:", Object.fromEntries(postAxiosResponse.headers.entries()));
+
+      if (postAxiosResponse.ok) {
+        toast.success("File uploaded successfully!");
+        onUploadComplete(`${CLOUDFLARE_PUBLIC_URL}/${key}`);
+      } else {
+        const errorText = await postAxiosResponse.text();
+        console.error("Upload failed with status:", postAxiosResponse.status);
+        console.error("Error response:", errorText);
+        toast.error(`Upload failed: ${postAxiosResponse.status}`);
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Failed to upload file");
+    } finally {
+      setFileUploaded(true);
     }
   }
 
